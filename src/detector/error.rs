@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[derive(Clone, Debug, Eq, Error, PartialEq)]
+#[derive(Debug, Eq, Error, PartialEq)]
 pub enum DetectorError {
     #[error("Failed to detect the OS distribution")]
     OsDetectionError,

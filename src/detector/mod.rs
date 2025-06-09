@@ -1,2 +1,2 @@
-mod lib;
 mod error;
+mod lib;

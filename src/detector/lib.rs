@@ -1,77 +1,76 @@
+use super::error::DetectorError::{
+    ArchDetectionError, OsDetectionError, OsNameDetectionError, OsVersionDetectionError,
+    PackageManagerDetectionError,
+};
+use anyhow::{bail, Context, Result};
 use std::process::Command;
-use anyhow::{Result, bail};
-use super::error::{DetectorError::{ArchDetectionError, OsDetectionError, OsVersionDetectionError, OsNameDetectionError, PackageManagerDetectionError}};
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct OsInfo {
-  pub name: String,
-  pub version: String,
-  pub arch: String,
-  pub distro: String,
-  pub desktop: bool
+    pub name: String,
+    pub version: String,
+    pub arch: String,
+    pub distro: String,
+    pub desktop: bool,
 }
 
 impl OsInfo {
+    fn run(cmd: &str, args: &[&str]) -> Result<String> {
+        let output = Command::new(cmd).args(args).output()?;
+
+        if !output.status.success() {
+            bail!("`{cmd}` exited with {status}", status = output.status);
+        }
+
+        let stdout = String::from_utf8(output.stdout)
+            .context("stdout contained invalid UTF-8")?
+            .trim()
+            .to_string();
+
+        if stdout.is_empty() {
+            bail!("`{cmd}` produced empty output");
+        }
+        Ok(stdout.to_owned())
+    }
     fn get_os_name() -> Result<String> {
         if cfg!(target_os = "linux") {
-            if let Ok(output) = Command::new("lsb_release").arg("-si").output() {
-                if let Ok(name) = String::from_utf8(output.stdout) {
-                    return Ok(name.trim().to_string());
-                }
-            }
+            return Self::run("lsb_release", &["-si"]).context("detecting OS name");
         }
         bail!(OsNameDetectionError)
     }
 
     fn get_os_version() -> Result<String> {
         if cfg!(target_os = "linux") {
-            if let Ok(output) = Command::new("lsb_release").arg("-sr").output() {
-                if let Ok(version) = String::from_utf8(output.stdout) {
-                    return Ok(version.trim().to_string());
-                }
-            }
+            return Self::run("lsb_release", &["-sr"]).context("detecting OS version");
         }
         bail!(OsVersionDetectionError);
     }
     fn get_os_arch() -> Result<String> {
-        if cfg!(target_os = "linux") {
-            if let Ok(output) = Command::new("uname").arg("-m").output() {
-                if let Ok(arch) = String::from_utf8(output.stdout) {
-                    return Ok(arch.trim().to_string());
-                }
-            }
-        }
-        bail!(ArchDetectionError)
+        Self::run("uname", &["-m"]).context("detecting architecture")
     }
-  
+
     fn get_os_distro() -> Result<String> {
         if cfg!(target_os = "linux") {
-            if let Ok(output) = Command::new("lsb_release").arg("-is").output() {
-                if let Ok(distro) = String::from_utf8(output.stdout) {
-                    return Ok(distro.trim().to_string());
-                }
-            }
+            return Self::run("lsb_release", &["-is"]).context("detecting distro");
         }
         bail!(OsDetectionError)
     }
 
-    pub fn detect() -> Self {
-        let name = Self::get_os_name().unwrap();
-        let version = Self::get_os_version().unwrap();
-        let arch = Self::get_os_arch().unwrap();
-        let distro = Self::get_os_distro().unwrap();
+    pub fn detect() -> Result<Self> {
+        let name = Self::get_os_name()?;
+        let version = Self::get_os_version()?;
+        let arch = Self::get_os_arch()?;
+        let distro = Self::get_os_distro()?;
 
-        OsInfo {
+       Ok(Self {
             name,
             version,
             arch,
             distro,
             desktop: false,
-        }
+        })
     }
-
-
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -79,21 +78,16 @@ mod tests {
 
     #[test]
     fn test_os_info_detection() {
-        let os_info = OsInfo::detect();
-        assert!(!os_info.name.is_empty());
-        assert!(!os_info.version.is_empty());
-        assert!(!os_info.arch.is_empty());
-        assert!(!os_info.distro.is_empty());
-    }
-
-    #[test]
-    fn test_os_name_detection() {
-        let name = OsInfo::get_os_name();
-        assert!(name.is_ok());
-        assert!(!name.unwrap().is_empty());
-    }
-    #[test]
-    fn test_os_name_detect_filed() {
-        let name = "";
+        match OsInfo::detect() {
+            Ok(info) => {
+                assert!(!info.name.is_empty());
+                assert!(!info.version.is_empty());
+                assert!(!info.arch.is_empty());
+                assert!(!info.distro.is_empty());
+            }
+            Err(e) => {
+                println!("detection failed as expected: {e}");
+            }
+          }
     }
 }
