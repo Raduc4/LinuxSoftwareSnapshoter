@@ -16,4 +16,10 @@ pub enum DetectorError {
 
     #[error("Failed to detect the package manager: {0}")]
     PackageManagerDetectionError(String),
+
+    #[error("Error checking data integrity")]
+    DataIntegrityError
+
+
+    
 }

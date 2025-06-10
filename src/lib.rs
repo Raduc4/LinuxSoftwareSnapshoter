@@ -1,2 +1,3 @@
+pub mod constants;
 pub mod detector;
-pub mod reader;
+pub mod generator;

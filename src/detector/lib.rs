@@ -1,10 +1,9 @@
 use super::error::DetectorError::{
-    ArchDetectionError, OsDetectionError, OsNameDetectionError, OsVersionDetectionError,
-    PackageManagerDetectionError,
+    OsDetectionError, OsNameDetectionError, OsVersionDetectionError, DataIntegrityError
 };
+use crate::constants::{ARCH, DISTRIBUTIONS};
 use anyhow::{bail, Context, Result};
 use std::process::Command;
-
 #[derive(Debug, PartialEq, Eq)]
 pub struct OsInfo {
     pub name: String,
@@ -15,6 +14,15 @@ pub struct OsInfo {
 }
 
 impl OsInfo {
+    fn new(name: String, version: String, arch: String, distro: String, desktop: bool) -> Self {
+        Self {
+            name,
+            version,
+            arch,
+            distro,
+            desktop,
+        }
+    }
     fn run(cmd: &str, args: &[&str]) -> Result<String> {
         let output = Command::new(cmd).args(args).output()?;
 
@@ -56,19 +64,25 @@ impl OsInfo {
         bail!(OsDetectionError)
     }
 
+    fn check(self) -> Result<Self> {
+      let checker  = !ARCH.contains(&self.arch.as_str()) || DISTRIBUTIONS.contains(&self.distro.as_str()); 
+       if !checker{
+        Err(DataIntegrityError.into())
+       } else {
+       Ok(self) 
+       }
+    }
+
     pub fn detect() -> Result<Self> {
         let name = Self::get_os_name()?;
         let version = Self::get_os_version()?;
         let arch = Self::get_os_arch()?;
         let distro = Self::get_os_distro()?;
 
-       Ok(Self {
-            name,
-            version,
-            arch,
-            distro,
-            desktop: false,
-        })
+        let output = Self::new(name, version, arch, distro, true);
+        println!("{:?}", output);
+
+        output.check()
     }
 }
 
@@ -88,6 +102,12 @@ mod tests {
             Err(e) => {
                 println!("detection failed as expected: {e}");
             }
-          }
+        }
+    }
+
+    #[test]
+    fn test_os_info_check() {
+      let os_info = OsInfo::detect();
+      assert!(os_info.unwrap().check().is_ok()) 
     }
 }
