@@ -19,7 +19,7 @@ mod tests {
             distro: "Ubuntu".into(),
             kernel: "29".into(),
             architecture: "x86_64".into(),
-            hostname: "Hi".into(),
+            hostname: "alu".into(),
         });
         assert!(x.is_ok())
     }

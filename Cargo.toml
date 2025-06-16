@@ -2,9 +2,14 @@
 name = "LinuxSoftwareSnapshoter"
 version = "0.1.0"
 edition = "2021"
+default-run = "tui"
 
 [[bin]]
-name = "snapshoter"
+name = "tui"
+
+[[bin]]
+name = "prepare"
+
 
 [dependencies]
 anyhow = "1.0.98"
@@ -12,3 +17,6 @@ clap = { version = "4.5.39", features = ["derive"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 thiserror = "2.0.12"
+crossterm = "0.28.1"
+ratatui = "0.29.0"
+color-eyre = "0.6.3"

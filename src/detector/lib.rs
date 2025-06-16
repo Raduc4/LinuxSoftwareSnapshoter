@@ -10,16 +10,18 @@ pub struct OsInfo {
     pub version: String,
     pub arch: String,
     pub distro: String,
+    pub hostname: String,
     pub desktop: bool,
 }
 
 impl OsInfo {
-    fn new(name: String, version: String, arch: String, distro: String, desktop: bool) -> Self {
+    fn new(name: String, version: String, arch: String, distro: String, hostname: String, desktop: bool) -> Self {
         Self {
             name,
             version,
             arch,
             distro,
+            hostname,
             desktop,
         }
     }
@@ -64,6 +66,13 @@ impl OsInfo {
         bail!(OsDetectionError)
     }
 
+    fn get_os_hostname() -> Result<String> {
+      if cfg!(target_os = "linux") {
+            return Self::run("hostname", &[]).context("detecting distro");
+        }
+        bail!(OsDetectionError)
+    }
+
     fn check(self) -> Result<Self> {
       let checker  = !ARCH.contains(&self.arch.as_str()) || DISTRIBUTIONS.contains(&self.distro.as_str()); 
        if !checker{
@@ -78,9 +87,9 @@ impl OsInfo {
         let version = Self::get_os_version()?;
         let arch = Self::get_os_arch()?;
         let distro = Self::get_os_distro()?;
+        let hostname = Self::get_os_hostname()?;
 
-        let output = Self::new(name, version, arch, distro, true);
-        println!("{:?}", output);
+        let output = Self::new(name, version, arch, distro, hostname,true);
 
         output.check()
     }
@@ -98,6 +107,7 @@ mod tests {
                 assert!(!info.version.is_empty());
                 assert!(!info.arch.is_empty());
                 assert!(!info.distro.is_empty());
+                assert!(!info.hostname.is_empty());
             }
             Err(e) => {
                 println!("detection failed as expected: {e}");
