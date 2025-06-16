@@ -15,15 +15,17 @@ pub struct OsInfo {
 }
 
 impl OsInfo {
-    fn new(name: String, version: String, arch: String, distro: String, hostname: String, desktop: bool) -> Self {
-        Self {
-            name,
-            version,
-            arch,
-            distro,
-            hostname,
-            desktop,
-        }
+    pub fn new() -> Result<Self> {
+      let name = Self::get_os_name()?;
+        let version = Self::get_os_version()?;
+        let arch = Self::get_os_arch()?;
+        let distro = Self::get_os_distro()?;
+        let hostname = Self::get_os_hostname()?;
+
+        let output = Self {name, version, arch, distro, hostname, desktop: true};
+
+        output.check()
+     
     }
     fn run(cmd: &str, args: &[&str]) -> Result<String> {
         let output = Command::new(cmd).args(args).output()?;
@@ -81,18 +83,6 @@ impl OsInfo {
        Ok(self) 
        }
     }
-
-    pub fn detect() -> Result<Self> {
-        let name = Self::get_os_name()?;
-        let version = Self::get_os_version()?;
-        let arch = Self::get_os_arch()?;
-        let distro = Self::get_os_distro()?;
-        let hostname = Self::get_os_hostname()?;
-
-        let output = Self::new(name, version, arch, distro, hostname,true);
-
-        output.check()
-    }
 }
 
 #[cfg(test)]
@@ -101,7 +91,7 @@ mod tests {
 
     #[test]
     fn test_os_info_detection() {
-        match OsInfo::detect() {
+        match OsInfo::new() {
             Ok(info) => {
                 assert!(!info.name.is_empty());
                 assert!(!info.version.is_empty());
@@ -117,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_os_info_check() {
-      let os_info = OsInfo::detect();
+      let os_info = OsInfo::new();
       assert!(os_info.unwrap().check().is_ok()) 
     }
 }

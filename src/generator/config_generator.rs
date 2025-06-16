@@ -11,7 +11,7 @@ pub fn write_json<'a, T: Serialize + Deserialize<'a>>(backup: T) -> std::io::Res
 
 #[cfg(test)]
 mod tests {
-    use crate::generator::{configGenerator::write_json, structs::SystemInfo};
+    use crate::generator::{config_generator::write_json, structs::SystemInfo};
 
     #[test]
     fn write_json_minimal_config() {

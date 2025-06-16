@@ -1,2 +1,2 @@
-mod error;
-mod lib;
+pub mod error;
+pub mod exec;

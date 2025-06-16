@@ -6,8 +6,11 @@ use ratatui::{
     text::Line,
     widgets::{Block, Paragraph},
 };
+use confshoter::settings::Settings;
 
 fn main() -> color_eyre::Result<()> {
+    pretty_env_logger::init();
+
     color_eyre::install()?;
     let terminal = ratatui::init();
     let result = App::new().run(terminal);

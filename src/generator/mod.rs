@@ -1,4 +1,4 @@
 pub mod apt;
-pub mod configGenerator;
+pub mod config_generator;
 pub mod pacman;
 pub mod structs;

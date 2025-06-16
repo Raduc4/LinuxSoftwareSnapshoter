@@ -1,5 +1,5 @@
 [package]
-name = "LinuxSoftwareSnapshoter"
+name = "confshoter"
 version = "0.1.0"
 edition = "2021"
 default-run = "tui"
@@ -20,3 +20,6 @@ thiserror = "2.0.12"
 crossterm = "0.28.1"
 ratatui = "0.29.0"
 color-eyre = "0.6.3"
+config = {version = "0.13", features = ["json5"] }
+pretty_env_logger = "0.5"
+log = "0.4"
